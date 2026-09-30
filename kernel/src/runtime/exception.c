@@ -1,5 +1,7 @@
 #include "minemu/irq.h"
 #include "minemu/syscall.h"
+#include "minemu/platform.h"
+#include "minemu/uart.h"
 
 void minemu_fail_stop(void) {
     for (;;) {
@@ -28,8 +30,16 @@ __attribute__((weak)) struct minemu_trap_frame *minemu_svc_dispatch(
 
 __attribute__((weak)) struct minemu_trap_frame *minemu_irq_dispatch(
     struct minemu_trap_frame *frame) {
-    (void)frame;
-    minemu_fail_stop();
+    switch(frame->exception_id){
+	case MINEMU_IRQ_UART0:
+		minemu_uart_irq_handler();
+		break;
+	default:
+		minemu_fail_stop();
+	}
+
+	MINEMU_INTERRUPT->eoi = (uint32_t)frame->exception_id;
+	return frame;
 }
 
 __attribute__((weak)) void minemu_undefined_dispatch(struct minemu_trap_frame *frame) {

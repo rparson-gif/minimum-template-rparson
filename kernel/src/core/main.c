@@ -23,6 +23,8 @@
 #define CPSR_THUMB UINT32_C(0x20)
 #define A32_SVC_ZERO UINT32_C(0xef000000)
 
+void minemu_uart_irq_handler(void);
+
 
 static uint32_t system_rom_tables[SYSTEM_ROM_TABLE_COUNT][1024]
     __attribute__((aligned(MINEMU_PAGE_SIZE)));
@@ -38,16 +40,43 @@ void minemu_enter_user(uint32_t entry_vaddr, uint32_t stack_top) __attribute__((
 
 static void zero_bytes(void *destination, size_t length) {
     uint8_t *bytes = destination;
-    for (size_t index = 0; index < length; ++index) {
-        bytes[index] = 0;
+
+    while (length != 0 && ((uintptr_t)bytes & 3U) != 0) {
+        *bytes++ = 0;
+        --length;
+    }
+
+    uint32_t *words = (uint32_t *)(void *)bytes;
+    while (length >= 4U) {
+        *words++ = 0;
+        length -= 4U;
+    }
+
+    bytes = (uint8_t *)words;
+    while (length != 0) {
+        *bytes++ = 0;
+        --length;
     }
 }
 
 static void copy_bytes(void *destination, const void *source, size_t length) {
     uint8_t *out = destination;
     const uint8_t *in = source;
-    for (size_t index = 0; index < length; ++index) {
-        out[index] = in[index];
+
+    if ((((uintptr_t)out | (uintptr_t)in) & 3U) == 0) {
+        uint32_t *out_words = (uint32_t *)(void *)out;
+        const uint32_t *in_words = (const uint32_t *)(const void *)in;
+        while (length >= 4U) {
+            *out_words++ = *in_words++;
+            length -= 4U;
+        }
+        out = (uint8_t *)out_words;
+        in = (const uint8_t *)in_words;
+    }
+
+    while (length != 0) {
+        *out++ = *in++;
+        --length;
     }
 }
 
@@ -381,6 +410,10 @@ struct minemu_trap_frame *minemu_svc_dispatch(
                                     MINEMU_PTE_WRITABLE)) {
             char *destination = (char *)(uintptr_t)arg0;
             uint32_t count = 0;
+
+            if(uart0){
+                minemu_uart_irq_handler();
+            }
 
             while (count < arg1) {
                 char c;

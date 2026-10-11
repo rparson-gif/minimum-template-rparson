@@ -21,7 +21,7 @@ RUNTIME_OBJECTS := \
 OBJECTS := $(CORE_OBJECT) $(RUNTIME_OBJECTS)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
-ARCH_FLAGS := -mcpu=cortex-a9 -marm -mfloat-abi=soft
+ARCH_FLAGS := -mcpu=cortex-a9 -marm -mfloat-abi=soft -O2
 CPPFLAGS := -Iinclude
 CFLAGS := $(ARCH_FLAGS) \
 	-ffreestanding \

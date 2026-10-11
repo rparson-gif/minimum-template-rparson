@@ -4,8 +4,10 @@ AR := $(ARM_PREFIX)ar
 
 BUILD := build
 LIBRARY := $(BUILD)/libminimum_user.a
-SOURCES := $(wildcard src/*.c)
-OBJECTS := $(patsubst src/%.c,$(BUILD)/%.o,$(SOURCES))
+SOURCES_C := $(wildcard src/*.c)
+SOURCES_S := $(wildcard src/*.S)
+OBJECTS := $(patsubst src/%.c,$(BUILD)/%.o,$(SOURCES_C)) \
+           $(patsubst src/%.S,$(BUILD)/%.o,$(SOURCES_S))
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
 ARCH_FLAGS := -mcpu=cortex-a9 -marm -mfloat-abi=soft
@@ -24,6 +26,10 @@ $(LIBRARY): $(OBJECTS)
 $(BUILD)/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/%.o: src/%.S
+	@mkdir -p $(dir $@)
+	$(CC) $(ARCH_FLAGS) -ffreestanding -MMD -MP -c $< -o $@
 
 clean:
 	rm -rf $(BUILD)

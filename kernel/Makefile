@@ -8,13 +8,15 @@ RUNTIME := $(BUILD)/libminemu_kernel.a
 
 CORE_OBJECT := $(BUILD)/core/main.o
 RUNTIME_OBJECTS := \
-	$(BUILD)/runtime/block.o \
-	$(BUILD)/runtime/exception.o \
-	$(BUILD)/runtime/memory.o \
-	$(BUILD)/runtime/trace.o \
-	$(BUILD)/runtime/uart.o \
-	$(BUILD)/startup/boot.o \
-	$(BUILD)/startup/vectors.o
+        $(BUILD)/runtime/block.o \
+        $(BUILD)/runtime/exception.o \
+        $(BUILD)/runtime/memory.o \
+        $(BUILD)/runtime/trace.o \
+        $(BUILD)/runtime/uart.o \
+        $(BUILD)/startup/boot.o \
+        $(BUILD)/startup/vectors.o \
+        $(BUILD)/startup/svc.o \
+	$(BUILD)/startup/user.o
 
 OBJECTS := $(CORE_OBJECT) $(RUNTIME_OBJECTS)
 DEPENDENCIES := $(OBJECTS:.o=.d)
